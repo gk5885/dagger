@@ -15,14 +15,24 @@
  */
 package dagger.internal.codegen;
 
-import com.squareup.javawriter.JavaWriter;
-import dagger.Lazy;
-import dagger.Module;
-import dagger.Provides;
-import dagger.internal.Binding;
-import dagger.internal.Linker;
-import dagger.internal.ModuleAdapter;
-import dagger.internal.SetBinding;
+import static dagger.Provides.Type.SET;
+import static dagger.Provides.Type.SET_VALUES;
+import static dagger.internal.codegen.AdapterJavadocs.bindingTypeDocs;
+import static dagger.internal.codegen.Util.adapterName;
+import static dagger.internal.codegen.Util.elementToString;
+import static dagger.internal.codegen.Util.getAnnotation;
+import static dagger.internal.codegen.Util.getNoArgsConstructor;
+import static dagger.internal.codegen.Util.getPackage;
+import static dagger.internal.codegen.Util.isCallableConstructor;
+import static dagger.internal.codegen.Util.isInterface;
+import static dagger.internal.codegen.Util.typeToString;
+import static dagger.internal.loaders.GeneratedAdapters.MODULE_ADAPTER_SUFFIX;
+import static javax.lang.model.element.Modifier.ABSTRACT;
+import static javax.lang.model.element.Modifier.FINAL;
+import static javax.lang.model.element.Modifier.PRIVATE;
+import static javax.lang.model.element.Modifier.PUBLIC;
+import static javax.lang.model.element.Modifier.STATIC;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -53,23 +64,15 @@ import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
-import static dagger.Provides.Type.SET;
-import static dagger.Provides.Type.SET_VALUES;
-import static dagger.internal.codegen.AdapterJavadocs.bindingTypeDocs;
-import static dagger.internal.codegen.Util.adapterName;
-import static dagger.internal.codegen.Util.elementToString;
-import static dagger.internal.codegen.Util.getAnnotation;
-import static dagger.internal.codegen.Util.getNoArgsConstructor;
-import static dagger.internal.codegen.Util.getPackage;
-import static dagger.internal.codegen.Util.isCallableConstructor;
-import static dagger.internal.codegen.Util.isInterface;
-import static dagger.internal.codegen.Util.typeToString;
-import static dagger.internal.loaders.GeneratedAdapters.MODULE_ADAPTER_SUFFIX;
-import static javax.lang.model.element.Modifier.ABSTRACT;
-import static javax.lang.model.element.Modifier.FINAL;
-import static javax.lang.model.element.Modifier.PRIVATE;
-import static javax.lang.model.element.Modifier.PUBLIC;
-import static javax.lang.model.element.Modifier.STATIC;
+import com.squareup.javawriter.JavaWriter;
+
+import dagger.Lazy;
+import dagger.Module;
+import dagger.Provides;
+import dagger.internal.Binding;
+import dagger.internal.Linker;
+import dagger.internal.ModuleAdapter;
+import dagger.internal.SetBinding;
 
 /**
  * Generates an implementation of {@link ModuleAdapter} that includes a binding
@@ -288,8 +291,8 @@ public final class ModuleAdapterProcessor extends AbstractProcessor {
 
     writer.emitEmptyLine();
     writer.beginMethod(null, adapterName, EnumSet.of(PUBLIC));
-    writer.emitStatement("super(INJECTS, STATIC_INJECTIONS, %s /*overrides*/, "
-        + "INCLUDES, %s /*complete*/, %s /*library*/)", overrides, complete, library);
+    writer.emitStatement("super(%s.class, INJECTS, STATIC_INJECTIONS, %s /*overrides*/, "
+        + "INCLUDES, %s /*complete*/, %s /*library*/)", typeName,  overrides, complete, library);
     writer.endMethod();
 
     ExecutableElement noArgsConstructor = getNoArgsConstructor(type);
@@ -309,7 +312,8 @@ public final class ModuleAdapterProcessor extends AbstractProcessor {
       writer.emitEmptyLine();
       writer.emitJavadoc(AdapterJavadocs.GET_DEPENDENCIES_METHOD);
       writer.emitAnnotation(Override.class);
-      writer.beginMethod("void", "getBindings", EnumSet.of(PUBLIC), BINDINGS_MAP, "map");
+      writer.beginMethod("void", "getBindings", EnumSet.of(PUBLIC), BINDINGS_MAP, "map",
+          typeName, "module");
 
       for (ExecutableElement providerMethod : providerMethods) {
         Provides provides = providerMethod.getAnnotation(Provides.class);

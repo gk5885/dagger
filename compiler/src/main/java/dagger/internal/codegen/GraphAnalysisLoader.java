@@ -15,13 +15,14 @@
  */
 package dagger.internal.codegen;
 
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.TypeElement;
+
 import dagger.internal.Binding;
 import dagger.internal.Loader;
 import dagger.internal.ModuleAdapter;
 import dagger.internal.StaticInjection;
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.TypeElement;
 
 /**
  * A {@code Binding.Resolver} suitable for tool use at build time. The bindings created by
@@ -54,7 +55,7 @@ public final class GraphAnalysisLoader extends Loader {
     return GraphAnalysisInjectBinding.create(type, mustHaveInjections);
   }
 
-  @Override public <T> ModuleAdapter<T> getModuleAdapter(Class<? extends T> moduleClass, T module) {
+  @Override public <T> ModuleAdapter<T> getModuleAdapter(Class<T> moduleClass) {
     throw new UnsupportedOperationException();
   }
 
