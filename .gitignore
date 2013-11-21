@@ -21,3 +21,6 @@ classes
 obj
 
 .DS_Store
+
+*~
+\#*\#

@@ -2,18 +2,20 @@ package coffee;
 
 import javax.inject.Inject;
 
-import dagger.ObjectGraph;
-
 public class CoffeeApp implements Runnable {
-  @Inject CoffeeMaker coffeeMaker;
+  private final CoffeeMaker coffeeMaker;
+
+  @Inject CoffeeApp(CoffeeMaker coffeeMaker) {
+    this.coffeeMaker = coffeeMaker;
+  }
 
   @Override public void run() {
     coffeeMaker.brew();
   }
 
   public static void main(String[] args) {
-    ObjectGraph objectGraph = ObjectGraph.create(new DripCoffeeModule());
-    CoffeeApp coffeeApp = objectGraph.get(CoffeeApp.class);
+    CoffeeAppComponent coffeeAppComponent = new DaggerComponent_CoffeeAppComponent();
+    CoffeeApp coffeeApp = coffeeAppComponent.getCoffeeApp();
     coffeeApp.run();
   }
 }

@@ -4,7 +4,7 @@ class ElectricHeater implements Heater {
   boolean heating;
 
   @Override public void on() {
-    System.out.println("~ ~ ~ heating ~ ~ ~");
+    System.out.println("\uD83D\uDD25 heating \uD83D\uDD25");
     this.heating = true;
   }
 

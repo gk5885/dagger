@@ -12,7 +12,7 @@ class Thermosiphon implements Pump {
 
   @Override public void pump() {
     if (heater.isHot()) {
-      System.out.println("=> => pumping => =>");
+      System.out.println("\u26fd pumping \u26fd");
     }
   }
 }
