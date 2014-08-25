@@ -37,8 +37,12 @@ import javax.lang.model.type.ErrorType;
 import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
+import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.SimpleAnnotationValueVisitor6;
 import javax.lang.model.util.SimpleTypeVisitor6;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Utilities for handling types in annotation processors
@@ -148,6 +152,17 @@ final class Util {
         }
         // TODO(cgruber): Figure out a strategy for non-FQCN cases.
         result.append(errorType.toString());
+        return null;
+      }
+      public Void visitWildcard(WildcardType wildcardType, Void v) {
+        result.append("?");
+        if (wildcardType.getExtendsBound() != null) {
+          result.append(" extends ");
+          typeToString(wildcardType.getExtendsBound(), result, innerClassSeparator);
+        } else if (wildcardType.getSuperBound() != null) {
+          result.append(" super ");
+          typeToString(wildcardType.getSuperBound(), result, innerClassSeparator);
+        }
         return null;
       }
       @Override protected Void defaultAction(TypeMirror typeMirror, Void v) {
@@ -342,6 +357,20 @@ final class Util {
       }
     }
     return false;
+  }
+
+  static boolean isValidJavaIdentifier(String possibleIdentifier) {
+    checkNotNull(possibleIdentifier);
+    checkArgument(!possibleIdentifier.isEmpty());
+    if (!Character.isJavaIdentifierStart(possibleIdentifier.charAt(0))) {
+      return false;
+    }
+    for (int i = 1; i < possibleIdentifier.length(); i++) {
+      if (!Character.isJavaIdentifierPart(possibleIdentifier.charAt(i))) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**

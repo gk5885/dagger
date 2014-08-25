@@ -24,6 +24,7 @@ import dagger.internal.Linker;
 import dagger.internal.Loader;
 import dagger.internal.ModuleAdapter;
 import dagger.internal.Modules;
+import dagger.internal.Modules.ModuleWithAdapter;
 import dagger.internal.ProblemDetector;
 import dagger.internal.SetBinding;
 import dagger.internal.StaticInjection;
@@ -32,7 +33,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 
 /**
@@ -129,8 +129,15 @@ public abstract class ObjectGraph {
     return DaggerObjectGraph.makeGraph(null, new FailoverLoader(), modules);
   }
 
-  // visible for testing
-  static ObjectGraph createWith(Loader loader, Object... modules) {
+  /**
+   * Load the graph with a custom loading strategy.  If you're not using this to work around
+   * proguard obfuscation, then use {@link #create(Object...)}
+   *
+   * @deprecated Recreated for reflective use of Dagger in the obfuscation case, and will be
+   *     entirely obsolete in Dagger 2.0.
+   */
+  @Deprecated
+  public static ObjectGraph createWith(Loader loader, Object... modules) {
     return DaggerObjectGraph.makeGraph(null, loader, modules);
   }
 
@@ -171,9 +178,13 @@ public abstract class ObjectGraph {
           (base == null) ? new StandardBindings() : new StandardBindings(base.setBindings);
       BindingsGroup overrideBindings = new OverridesBindings();
 
-      Map<ModuleAdapter<?>, Object> loadedModules = Modules.loadModules(plugin, modules);
-      for (Entry<ModuleAdapter<?>, Object> loadedModule : loadedModules.entrySet()) {
-        ModuleAdapter<Object> moduleAdapter = (ModuleAdapter<Object>) loadedModule.getKey();
+      ArrayList<ModuleWithAdapter> loadedModules = Modules.loadModules(plugin, modules);
+      int loadedModulesCount = loadedModules.size();
+      for (int moduleIndex = 0; moduleIndex < loadedModulesCount; moduleIndex++) {
+        ModuleWithAdapter loadedModule = loadedModules.get(moduleIndex);
+        @SuppressWarnings("unchecked")
+        ModuleAdapter<Object> moduleAdapter =
+            (ModuleAdapter<Object>) loadedModule.getModuleAdapter();
         for (int i = 0; i < moduleAdapter.injectableTypes.length; i++) {
           injectableTypes.put(moduleAdapter.injectableTypes[i], moduleAdapter.moduleClass);
         }
@@ -182,10 +193,10 @@ public abstract class ObjectGraph {
         }
         try {
           BindingsGroup addTo = moduleAdapter.overrides ? overrideBindings : baseBindings;
-          moduleAdapter.getBindings(addTo, loadedModule.getValue());
+          moduleAdapter.getBindings(addTo, loadedModule.getModule());
         } catch (IllegalArgumentException e) {
-          throw new IllegalArgumentException(moduleAdapter.moduleClass.getSimpleName()
-              + " is an overriding module and cannot contribute set bindings.");
+          throw new IllegalArgumentException(
+              moduleAdapter.moduleClass.getSimpleName() + ": " + e.getMessage(), e);
         }
       }
 

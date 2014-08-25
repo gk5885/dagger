@@ -23,9 +23,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import static com.google.common.truth.Truth.ASSERT;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 import static dagger.tests.integration.ProcessorTestUtils.daggerProcessors;
-import static org.truth0.Truth.ASSERT;
 
 @RunWith(JUnit4.class)
 public final class InjectAdapterGenerationTest {
@@ -48,8 +48,8 @@ public final class InjectAdapterGenerationTest {
             "  private static final Class<?>[] STATIC_INJECTIONS = {};",
             "  private static final Class<?>[] INCLUDES = {};",
             "  public Basic$AModule$$ModuleAdapter() {",
-            "    super(Basic.AModule.class, INJECTS, STATIC_INJECTIONS, false, INCLUDES, true,",
-            "      false);",
+            "    super(Basic.AModule.class, INJECTS, STATIC_INJECTIONS, false, INCLUDES,",
+            "      true, false);",
             "  }",
             "  @Override public Basic.AModule newModule() {",
             "    return new Basic.AModule();",

@@ -15,6 +15,7 @@
  */
 package dagger.internal.codegen;
 
+import com.google.auto.service.AutoService;
 import com.squareup.javawriter.JavaWriter;
 import dagger.Lazy;
 import dagger.Module;
@@ -41,6 +42,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.inject.Provider;
@@ -59,6 +61,7 @@ import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
+import static com.google.auto.common.MoreElements.isAnnotationPresent;
 import static dagger.Provides.Type.SET;
 import static dagger.Provides.Type.SET_VALUES;
 import static dagger.internal.codegen.AdapterJavadocs.bindingTypeDocs;
@@ -78,9 +81,10 @@ import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
 
 /**
- * Generates an implementation of {@link ModuleAdapter} that includes a binding
- * for each {@code @Provides} method of a target class.
+ * Generates an implementation of {@link ModuleAdapter} that includes a binding for each
+ * {@code @Provides} method of a target class.
  */
+@AutoService(Processor.class)
 @SupportedAnnotationTypes({ "*" })
 public final class ModuleAdapterProcessor extends AbstractProcessor {
   private static final String BINDINGS_MAP = JavaWriter.type(BindingsGroup.class);
@@ -95,7 +99,13 @@ public final class ModuleAdapterProcessor extends AbstractProcessor {
   }
 
   @Override public boolean process(Set<? extends TypeElement> types, RoundEnvironment env) {
-    remainingTypes.putAll(providerMethodsByClass(env));
+    try {
+      remainingTypes.putAll(providerMethodsByClass(env));
+    } catch (ClassCastException e) {
+      return false; // upstream compiler issues - bail cleanly.
+    } catch (CodeGenerationIncompleteException e) {
+      return false; // upstream compiler issues - bail cleanly.
+    }
     for (Iterator<String> i = remainingTypes.keySet().iterator(); i.hasNext();) {
       String typeName = i.next();
       TypeElement type = processingEnv.getElementUtils().getTypeElement(typeName);
@@ -143,6 +153,10 @@ public final class ModuleAdapterProcessor extends AbstractProcessor {
 
     provides:
     for (Element providerMethod : findProvidesMethods(env)) {
+      if (providerMethod.getAnnotation(Provides.class) == null) {
+        throw new CodeGenerationIncompleteException("Missing import of dagger.Provides.");
+      }
+
       switch (providerMethod.getEnclosingElement().getKind()) {
         case CLASS:
           break; // valid, move along
@@ -453,7 +467,7 @@ public final class ModuleAdapterProcessor extends AbstractProcessor {
 
     writer.emitEmptyLine();
     writer.beginMethod(null, className, EnumSet.of(PUBLIC), moduleType, "module");
-    boolean singleton = providerMethod.getAnnotation(Singleton.class) != null;
+    boolean singleton = isAnnotationPresent(providerMethod, Singleton.class);
     String key = JavaWriter.stringLiteral(GeneratorKeys.get(providerMethod));
     writer.emitStatement("super(%s, %s, %s, %s)",
         key, (singleton ? "IS_SINGLETON" : "NOT_SINGLETON"),
@@ -488,7 +502,7 @@ public final class ModuleAdapterProcessor extends AbstractProcessor {
       writer.beginMethod("void", "getDependencies", EnumSet.of(PUBLIC), setOfBindings,
           "getBindings", setOfBindings, "injectMembersBindings");
       for (Element parameter : parameters) {
-        writer.emitStatement("getBindings.add(%s)", parameter.getSimpleName().toString());
+        writer.emitStatement("getBindings.add(%s)", parameterName(parameter));
       }
       writer.endMethod();
     }
@@ -502,7 +516,7 @@ public final class ModuleAdapterProcessor extends AbstractProcessor {
     for (Element parameter : parameters) {
       if (!first) args.append(", ");
       else first = false;
-      args.append(String.format("%s.get()", parameter.getSimpleName().toString()));
+      args.append(String.format("%s.get()", parameterName(parameter)));
     }
     writer.emitStatement("return module.%s(%s)", methodName, args.toString());
     writer.endMethod();

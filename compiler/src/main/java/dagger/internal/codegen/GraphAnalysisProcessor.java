@@ -15,6 +15,7 @@
  */
 package dagger.internal.codegen;
 
+import com.google.auto.service.AutoService;
 import dagger.Module;
 import dagger.Provides;
 import dagger.internal.Binding;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.inject.Singleton;
@@ -56,6 +58,7 @@ import javax.tools.FileObject;
 import javax.tools.JavaFileManager;
 import javax.tools.StandardLocation;
 
+import static com.google.auto.common.MoreElements.isAnnotationPresent;
 import static dagger.Provides.Type.SET;
 import static dagger.Provides.Type.SET_VALUES;
 import static dagger.internal.codegen.Util.className;
@@ -67,6 +70,7 @@ import static java.util.Arrays.asList;
 /**
  * Performs full graph analysis on a module.
  */
+@AutoService(Processor.class)
 @SupportedAnnotationTypes("dagger.Module")
 public final class GraphAnalysisProcessor extends AbstractProcessor {
   private static final Set<String> ERROR_NAMES_TO_PROPAGATE = new LinkedHashSet<String>(asList(
@@ -102,6 +106,9 @@ public final class GraphAnalysisProcessor extends AbstractProcessor {
     }
 
     for (Element element : modules) {
+      if (element == null) {
+        continue; // skip this element. An up-stream compiler error is in play.
+      }
       Map<String, Object> annotation = null;
       try {
         annotation = getAnnotation(Module.class, element);
@@ -331,8 +338,8 @@ public final class GraphAnalysisProcessor extends AbstractProcessor {
     private final Binding<?>[] parameters;
 
     protected ProviderMethodBinding(String provideKey, ExecutableElement method, boolean library) {
-      super(provideKey, method.getAnnotation(Singleton.class) != null,
-          className(method), method.getSimpleName().toString());
+      super(provideKey, isAnnotationPresent(method, Singleton.class), className(method),
+          method.getSimpleName().toString());
       this.method = method;
       this.parameters = new Binding[method.getParameters().size()];
       setLibrary(library);

@@ -59,7 +59,6 @@
             <property name="processJavadoc" value="true"/>
         </module>
 
-
         <!-- Checks for Size Violations.                    -->
         <!-- See http://checkstyle.sf.net/config_sizes.html -->
         <module name="LineLength">
@@ -68,7 +67,6 @@
         <module name="MethodLength">
             <property name="max" value="200"/>
         </module>
-
         <!--module name="ParameterNumber"/-->
 
 
@@ -83,7 +81,10 @@
         <module name="ParenPad"/>
         <module name="TypecastParenPad"/>
         <module name="WhitespaceAfter"/>
-        <module name="WhitespaceAround"/>
+        <module name="WhitespaceAround">
+          <property name="allowEmptyConstructors" value="true" />
+          <property name="allowEmptyMethods" value="true" />
+        </module>
 
 
         <!-- Modifier Checks                                    -->

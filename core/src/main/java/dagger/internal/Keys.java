@@ -35,7 +35,7 @@ import javax.inject.Qualifier;
  *       qualified by the annotation.
  *   <li>{@code members/com.square.Foo}: injects members of Foo.
  * </ol>
- * BindingsGroup from {@code @Provides} methods are of the first two types. BindingsGroup
+ * Bindings from {@code @Provides} methods are of the first two types. BindingsGroup
  * created from {@code @Inject}-annotated members of a class are of the first
  * and last types.
  */
@@ -189,7 +189,7 @@ public final class Keys {
   }
 
   /**
-   * Returns a key for the underlying binding of a Lazy<T> value. For example,
+   * Returns a key for the underlying binding of a {@code Lazy<T>} value. For example,
    * if this is a key for a {@code Lazy<Foo>}, this returns the key for
    * {@code Foo}. This retains annotations.
    */
@@ -211,7 +211,7 @@ public final class Keys {
   }
 
   /**
-   * Returns an unwrapped key (the key for T from a Provider<T> for example),
+   * Returns an unwrapped key (the key for {@code T} from a {@code Provider<T>} for example),
    * removing all wrapping key information, but preserving annotations or known
    * prefixes.
    *

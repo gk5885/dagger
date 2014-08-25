@@ -26,10 +26,10 @@
   <groupId>com.google.dagger</groupId>
   <artifactId>dagger-parent</artifactId>
   <packaging>pom</packaging>
-  <version>1.1.1-SNAPSHOT</version>
+  <version>2.0-SNAPSHOT</version>
   <name>Dagger (Parent)</name>
-  <description>A JSR-330 dependency injector for Android and Java.</description>
-  <url>https://github.com/google/dagger</url>
+  <description>A fast dependency injector for Android and Java.</description>
+  <url>https://github.com/square/dagger</url>
 
   <modules>
     <module>compiler</module>
@@ -43,11 +43,17 @@
     <!-- Compilation -->
     <java.version>1.6</java.version>
     <javax.inject.version>1</javax.inject.version>
-    <javawriter.version>2.1.1</javawriter.version>
+    <javawriter.version>2.5.0</javawriter.version>
+    <auto.common.version>1.0-SNAPSHOT</auto.common.version>
+    <auto.service.version>1.0-rc1</auto.service.version>
+    <guava.version>17.0</guava.version>
 
     <!-- Test Dependencies -->
-    <junit.version>4.10</junit.version>
+    <compile-testing.version>0.6-SNAPSHOT</compile-testing.version>
     <fest.version>1.4</fest.version>
+    <junit.version>4.11</junit.version>
+    <mockito.version>1.9.5</mockito.version>
+    <truth.version>1.0-SNAPSHOT</truth.version>
   </properties>
 
   <scm>
@@ -87,6 +93,26 @@
         <version>${javawriter.version}</version>
       </dependency>
       <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>${guava.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava-testlib</artifactId>
+        <version>${guava.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.auto</groupId>
+        <artifactId>auto-common</artifactId>
+        <version>${auto.common.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.auto.service</groupId>
+        <artifactId>auto-service</artifactId>
+        <version>${auto.service.version}</version>
+      </dependency>
+      <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>${junit.version}</version>
@@ -95,6 +121,21 @@
         <groupId>org.easytesting</groupId>
         <artifactId>fest-assert</artifactId>
         <version>${fest.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.testing.compile</groupId>
+        <artifactId>compile-testing</artifactId>
+        <version>${compile-testing.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>${mockito.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.truth</groupId>
+        <artifactId>truth</artifactId>
+        <version>${truth.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -143,7 +184,7 @@
         <artifactId>maven-checkstyle-plugin</artifactId>
         <version>2.10</version>
         <configuration>
-          <failsOnError>true</failsOnError>
+          <failsOnError>false</failsOnError>
           <consoleOutput>true</consoleOutput>
           <configLocation>checkstyle.xml</configLocation>
         </configuration>
